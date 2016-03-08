@@ -3,6 +3,7 @@ import RPi.GPIO as gpio
 import time
 class Auto:
   def __init__(self,wheels):
+    gpio.setmode(gpio.BOARD)     
     self.allwheels=wheels
     self.rightwheel=wheels[0:2]
     self.leftwheel=wheels[2:4]
@@ -11,8 +12,8 @@ class Auto:
     gpio.setmode(gpio.BOARD)
     for port in wheels:
       gpio.setup(port,gpio.OUT)
-    self.p1=gpio.PWM(self.pwm[0], 50)
-    self.p2=gpio.PWM(self.pwm[1], 50)
+    self.p1=gpio.PWM(self.pwm[0], 255)
+    self.p2=gpio.PWM(self.pwm[1], 255)
     self.nowspeed=30
     self.p1.start(self.nowspeed)
     self.p2.start(self.nowspeed)
@@ -33,13 +34,13 @@ class Auto:
       gpio.output(self.allwheels[2],gpio.LOW)
       gpio.output(self.allwheels[3],gpio.HIGH)
   
-  def turnright(self):
+  def turnleft(self):
       gpio.output(self.allwheels[0],gpio.LOW)
       gpio.output(self.allwheels[1],gpio.HIGH)
       gpio.output(self.allwheels[2],gpio.HIGH)
       gpio.output(self.allwheels[3],gpio.LOW)
   
-  def turnleft(self):
+  def turnright(self):
       gpio.output(self.allwheels[0],gpio.HIGH)
       gpio.output(self.allwheels[1],gpio.LOW)
       gpio.output(self.allwheels[2],gpio.LOW)
@@ -70,7 +71,7 @@ class Auto:
           self.changespeed(self.p1,self.nowspeed)
           self.changespeed(self.p2,self.nowspeed)
 if __name__ == "__main__":
-    huang=auto([7,11,13,15,19,21])
-    huang.commend("forward")
+    huang=Auto([29,31,33,35,37,40])
+    huang.commend("backward")
     input()
     huang.commend("stop")
