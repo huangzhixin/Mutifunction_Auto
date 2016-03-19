@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="socket.io.js"></script>
+<script>
+WEB_SOCKET_SWF_LOCATION = 'WebSocketMain.swf';
+</script>
+<script type="text/javascript">
+var conn = null;
+$(function() {
+function log(msg) {            //这个函数就是相当于控制台，也相当与网页版的printf
+var control = $('#log');        //获取#log的代码段
+control.html(control.html() + msg + '<br/>'); //获取到消息后对已经显示在网页的字符串进行累加
+control.scrollTop(control.scrollTop() + 1000); //不太懂，删去+1000也没什么变化
+}
+function connect() {                       //最重要的函数
+//disconnect();
+// Socket.IO magic, $.map does not work and crashes socket.io.
+var transports = [];                             //选择连接方式
+$('#protocols input:checked').each(function(){
+return transports.push($(this).attr('id'));
+});
+// Hack to work around bug 251, I really hope it is going to be fixed.
+// https://github.com/LearnBoost/socket.io-client/issues/251
+// Alternative way to do full reconnect is to pass 'force new connection',
+// but you will lose multiplexing.
+io.j = [];
+io.sockets = [];
+conn = io.connect('http://' + window.location.host + '/', {
+//'force new connection': true,
+transports: transports,
+rememberTransport: false
+});
+log('Connecting...');
+conn.on('connect', function() {                    //连接
+log('Connected.');
+update_ui();
+});
+conn.on('message', function(data) {           //从服务器消息来了，显示
+log('Received: ' + data);
+});
+conn.on('disconnect', function(data) {     //关闭连接
+log('Disconnected.');
+conn = null;
+update_ui();
+});
+}
+function disconnect() {
+if (conn != null) {
+log('Disconnecting...');
+conn.disconnect();
+conn = null;
+update_ui();
+}
+}
+function update_ui() {                 //更新连接状态
+var msg = '';
+if (conn == null || !conn.socket || !conn.socket.connected) {
+msg = 'disconnected';
+$('#connect').text('Connect');
+} else {
+msg = 'connected (' + conn.socket.transport.name + ')';
+$('#connect').text('Disconnect');
+}
+$('#status').text(msg);
+}
+$('#connect').click(function() {   //点击按钮
+if (conn == null) {
+connect();
+} else {
+disconnect();
+}
+update_ui();
+return false;
+});
+$('form').submit(function() {     //点击按钮
+var text = $('#text').val();             //获取输入框的值
+log('Sending: ' + text);                    
+conn.send(text);                             //给服务器发消息
+$('#text').val('').focus();               //清空输入框的值
+return false;
+});
+init();
+function init(){
+       // if (window && window.DeviceMotionEvent)
+       //     window.addEventListener("devicemotion", motionHandler, false);
+        if (window && window.DeviceOrientationEvent)
+            window.addEventListener("deviceorientation", orientationHandler, false);
+ }
+function orientationHandler(event) {
+        conn.send( event.alpha+","+event.beta+","+event.gamma);   
+        //log(event.alpha)
+        document.getElementById("alpha").innerHTML = event.alpha||0;
+        document.getElementById("beta").innerHTML = event.beta||0;
+        document.getElementById("gamma").innerHTML = event.gamma||0;
+        document.getElementById("heading").innerHTML = event.webkitCompassHeading||0;
+        document.getElementById("accuracy").innerHTML = event.webkitCompassAccuracy||0;
+ }
+ var flag=0
+ $('#motor').click(function() {   //点击按钮
+     //log("asdsdfsdfsdfsdfsdf")
+     if (flag==0) {
+     	conn.send("gpio,17,1")
+     	flag=1
+     }
+     else {
+     	conn.send("gpio,17,0")
+     	flag=0
+     }
+     
+});
+ });
+</script>
+
+<meta charset="utf-8"/>
+    <title>Manual Control </title>
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no,target-densitydpi=device-dpi"/>
+    <style  type="text/css">
+        body{font-size: 24px;}
+        span{color:#f00;}
+        a{text-decoration: none;color:#f00;}
+        a:hover{color:#000;}
+    </style>
+    
+</head>
+
+<body>
+<h3>Protocol test!</h3>
+<div id="image" style="float:center">
+       <img width="320" height="240" src="http://192.168.10.1:8001/?action=stream"><br/>
+</div>
+
+<div>
+<a id="connect" href="#">Connect</a>&nbsp;|&nbsp;Status: <span id="status">disconnected</span>
+<button id="motor" href="#">开关</button>
+</div>
+<div id="log" style="width=device-width; height: 20em; overflow:auto; border: 1px solid black">
+</div>
+<form id="chatform">
+<input id="text" type="text" />
+<input type="submit" />
+</form>
+
+<p>左右：<span id="alpha">0</span></p>
+<p>前后：<span id="beta">0</span></p>
+<p>扭转：<span id="gamma">0</span></p>
+<p>指北针指向：<span id="heading">0</span>度</p>
+<p>指北针精度：<span id="accuracy">0</span>度</p>
+</body>
+</html>
+
+
