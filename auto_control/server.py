@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-  
 from os import path as op
 
 import tornado.web
@@ -5,8 +6,10 @@ import tornadio2
 import tornadio2.router
 import tornadio2.server
 import tornadio2.conn
-
-ROOT = op.normpath(op.dirname(__file__))
+from control import Auto 
+import time
+ROOT = op.normpath(op.dirname(__file__))   #获取基础地址，如果不写就是当前地址
+#以下的方法都是标准的接口架构，往里面填代码就行
 
 class IndexHandler(tornado.web.RequestHandler):
     """Regular HTTP handler to serve the chatroom page"""
@@ -14,7 +17,7 @@ class IndexHandler(tornado.web.RequestHandler):
         self.render('index.html')
 
 
-class SocketIOHandler(tornado.web.RequestHandler):
+class SocketIOHandler(tornado.web.RequestHandler): #这个js库在上层
     def get(self):
         self.render('./socket.io.js')
 
@@ -33,17 +36,22 @@ class WebSocketFileHandler(tornado.web.RequestHandler):
 class ChatConnection(tornadio2.conn.SocketConnection):
     # Class level variable
     participants = set()
-
-    def on_open(self, info):
+    huang=Auto([29,31,33,35,38,40])
+    def on_open(self, info):                    #当网页发起连接后发送
         self.send("Welcome from the server.")
-        self.participants.add(self)
+        self.participants.add(self)             #保存客户端客户的信息
 
-    def on_message(self, message):
+    def on_message(self, message):              #有消息进来后
         # Pong message back
-        for p in self.participants:
-            p.send(message)
-
-    def on_close(self):
+        #for p in self.participants:             #进行广播
+            #p.send(message)
+        value=message.split(",")
+        alpha=int(float(value[0]))
+        beta=int(float(value[1]))
+        gamma=int(float(value[2]))
+        
+        self.huang.control(beta,gamma)
+    def on_close(self):                         #连接关闭后删除信息
         self.participants.remove(self)
 
 # Create chat server
@@ -65,3 +73,6 @@ if __name__ == "__main__":
     logging.getLogger().setLevel(logging.DEBUG)
 
     tornadio2.server.SocketServer(application)
+
+
+
