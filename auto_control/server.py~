@@ -39,9 +39,9 @@ class WebSocketFileHandler(tornado.web.RequestHandler):
 class ChatConnection(tornadio2.conn.SocketConnection):
     # Class level variable
     participants = set()
-    self.auto=Auto([29,31,33,35,38,40])
-    self.network = UnmannedNet(768,60,2)
-    self.eye=Eye("192.168.10.1")
+    huang=Auto([29,31,33,35,38,40])
+    network = UnmannedNet(768,60,2)
+    eye=Eye("192.168.10.1")
 
     def on_open(self, info):                    #当网页发起连接后发送
         self.send("Welcome from the server.")
@@ -55,11 +55,11 @@ class ChatConnection(tornadio2.conn.SocketConnection):
         alpha=int(float(value[0]))
         beta=int(float(value[1]))
         gamma=int(float(value[2]))
-        self.auto.control(beta,gamma)
-        self.network.adddata(self.eye.getResizeImage(),(beta,gamma))
+        self.huang.control(beta,gamma)
+        network.adddata(eye.getResizeImage(),(beta,gamma))
     def on_close(self):                         #连接关闭后删除信息
         self.participants.remove(self)
-        self.network.save_data()
+        network.save_data()
 
 # Create chat server
 ChatRouter = tornadio2.router.TornadioRouter(ChatConnection, dict(websocket_check=True))
